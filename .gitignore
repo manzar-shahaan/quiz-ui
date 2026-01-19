@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Local artifacts
+*.png
+
+#Checklist file
+next things to implement.md
+
+#helper
+AGENTS.md
