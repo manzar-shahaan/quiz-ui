@@ -105,8 +105,44 @@
               {% endfor %}
           </div>
 
+          {# Matching: two-column chooser #}
+          {% elif q.qtype == 'match' and q.match_left and q.options %}
+            <div class="bs-match-grid" role="group" aria-label="Matching question">
+              <div class="bs-match-left">
+                {% for left in q.match_left %}
+                  <div class="bs-match-row">
+                    <div class="bs-match-prompt">{{ left.label }}) {{ left.text }}</div>
+                    <div class="bs-match-select">
+                      <select name="answer_match_{{ q.index }}_{{ left.label }}" aria-label="Match for {{ left.label }}">
+                        <option value="">Select...</option>
+                        {% for opt in q.options %}
+                          <option value="{{ opt.label }}"
+                            {% if existing_answers[q.index]|default('') %}
+                              {% set ua = existing_answers[q.index] %}
+                              {% set pairs = ua.split(',') %}
+                              {% for p in pairs %}
+                                {% set parts = p.split('-') %}
+                                {% if parts|length == 2 and parts[0].strip() == left.label and parts[1].strip() == opt.label %}selected{% endif %}
+                              {% endfor %}
+                            {% endif %}
+                          >{{ opt.label }}) {{ opt.text }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="bs-match-right">
+                <div class="bs-match-right-title">Options</div>
+                <ul>
+                  {% for opt in q.options %}
+                    <li><strong>{{ opt.label }})</strong> {{ opt.text }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
 
-          {# Fallback: match questions or anything without options – use the old textarea #}
+          {# Fallback #}
           {% else %}
             <textarea
               name="answer_{{ q.index }}"

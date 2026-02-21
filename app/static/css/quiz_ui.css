@@ -460,6 +460,65 @@ body {
   white-space: pre-wrap; /* preserve newlines & indentation */
 }
 
+/* Matching layout */
+.bs-match-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.2fr) minmax(220px, 1fr);
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+  align-items: start;
+}
+
+.bs-match-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.bs-match-row {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.bs-match-prompt {
+  font-weight: 600;
+  color: #1b2a3c;
+}
+
+.bs-match-select select {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #cdd5e0;
+  background: #fff;
+}
+
+.bs-match-right {
+  background: #f8fafc;
+  border: 1px solid #e5e9f0;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.bs-match-right-title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.bs-match-right ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bs-match-right li {
+  padding: 0.25rem 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
 @media (max-width: 960px) {
   .bs-quiz-shell {
     flex-direction: column;
@@ -514,4 +573,3 @@ body {
     width: 100%;
   }
 }
-

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bs-card bs-start-card">
+  <form method="post" action="{{ url_for('main.start_quiz') }}">
+    <div class="bs-start-shell">
+      <div class="bs-start-main">
+        {% if quiz.meta_lines %}
+        <ul class="bs-quiz-meta">
+          {% for line in quiz.meta_lines %}
+            <li>{{ line }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if error %}
+          <p class="bs-error">{{ error }}</p>
+        {% endif %}
+
+        <button type="submit" class="bs-button bs-button-primary">
+          Start Quiz
+        </button>
+      </div>
+
+      <aside class="bs-start-prefs is-collapsed" aria-label="Preferences">
+        <div class="bs-prefs-header">
+          <div class="bs-prefs-label">Preferences</div>
+          <button
+            type="button"
+            class="bs-prefs-toggle"
+            aria-expanded="false"
+            aria-controls="bs-prefs-panel"
+            title="Show preferences"
+          >
+            ›
+          </button>
+        </div>
+
+        <div class="bs-prefs-panel" id="bs-prefs-panel">
+          <label class="bs-pref-option">
+            <input type="checkbox" name="show_answers_in_sidebar" value="1">
+            <span>Show answers in sidebar</span>
+          </label>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

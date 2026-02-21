@@ -8,8 +8,10 @@
   <link rel="preconnect" href="https://fonts.bunny.net">
   <link href="https://fonts.bunny.net/css?family=lato:400" rel="stylesheet" />
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/quiz_ui.css') }}">
-  <script defer src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+  {# cache-bust static assets when layouts change #}
+  {% set _v = '20260213a' %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/quiz_ui.css', v=_v) }}">
+  <script defer src="{{ url_for('static', filename='js/quiz.js', v=_v) }}"></script>
 </head>
 
 <body>

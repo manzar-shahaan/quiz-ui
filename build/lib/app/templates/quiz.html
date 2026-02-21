@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bs-quiz-shell" data-show-answers="{{ 1 if show_answers_in_sidebar else 0 }}" data-grade-url="{{ url_for('main.grade_api') }}">
+  <aside class="bs-nav-panel" aria-label="Quiz navigation">
+    <div class="bs-nav-header">
+      <div class="bs-nav-progress">{{ answered_count }} of {{ total }} saved</div>
+    </div>
+
+    {% for page in nav_pages %}
+      <div class="bs-nav-page">
+        <div class="bs-nav-page-title">Page {{ page.page_num }}</div>
+        <div class="bs-nav-grid">
+          {% for nav in page.entries %}
+            <a
+              class="bs-nav-tile {% if nav.current %}is-current{% endif %} {% if nav.answered %}is-answered{% endif %} {% if show_answers_in_sidebar and nav.status %}is-{{ nav.status }}{% endif %}"
+              href="{{ url_for('main.quiz_page') }}?index={{ nav.index }}"
+              data-question-index="{{ nav.index }}"
+            >
+              <span class="bs-nav-number">{{ nav.display }}</span>
+              <span class="bs-nav-check" aria-hidden="true"></span>
+              <span class="sr-only">
+                Question {{ nav.display }}
+                {% if nav.answered %} answered{% else %} not answered{% endif %}
+                {% if nav.current %} (current){% endif %}
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  </aside>
+
+  <section class="bs-question-panel">
+    <header class="bs-quiz-header">
+      <div>
+        <div class="bs-quiz-subhead">Page {{ page_index }} of {{ total_pages }}</div>
+      </div>
+    </header>
+
+    <form method="post" action="{{ url_for('main.quiz_page', index=index) }}">
+      {% for q in page_questions %}
+      <div class="bs-card bs-question-card" id="q-{{ q.index }}">
+        <div class="bs-question-header">
+          <div class="bs-question-label">Question {{ q.file_qnum }}</div>
+          <div class="bs-question-status">
+            {% if existing_answers[q.index]|default("") %}Saved{% else %}Not saved{% endif %}
+          </div>
+        </div>
+
+        <div class="bs-question-body">
+          <pre class="bs-question-text">{{ q.prompt }}</pre>
+
+          {# T/F questions: two radio buttons #}
+          {% if q.qtype == 't/f' %}
+            <div class="bs-options">
+              <label class="bs-option-row">
+                <input
+                  type="radio"
+                  name="answer_{{ q.index }}"
+                  value="T"
+                  {% if 'T' in existing_letters_map[q.index] %}checked{% endif %}
+                >
+                <span class="bs-option-label">True</span>
+              </label>
+              <label class="bs-option-row">
+                <input
+                  type="radio"
+                  name="answer_{{ q.index }}"
+                  value="F"
+                  {% if 'F' in existing_letters_map[q.index] %}checked{% endif %}
+                >
+                <span class="bs-option-label">False</span>
+              </label>
+            </div>
+
+          {# Single-choice MC with options A/B/C/... #}
+          {% elif q.qtype == 'mc' and q.options %}
+          <div class="bs-options">
+              {% for opt in q.options %}
+              <label class="bs-option-row">
+                  <input
+                  type="radio"
+                  name="answer_{{ q.index }}"
+                  value="{{ opt.label }}"
+                  {% if opt.label in existing_letters_map[q.index] %}checked{% endif %}
+                  >
+                  <span class="bs-option-text">{{ opt.text }}</span>
+              </label>
+              {% endfor %}
+          </div>
+
+          {# Multi-select questions: checkboxes #}
+          {% elif q.qtype == 'multi' and q.options %}
+          <div class="bs-options">
+              {% for opt in q.options %}
+              <label class="bs-option-row">
+                  <input
+                  type="checkbox"
+                  name="answer_multi_{{ q.index }}"
+                  value="{{ opt.label }}"
+                  {% if opt.label in existing_letters_map[q.index] %}checked{% endif %}
+                  >
+                  <span class="bs-option-text">{{ opt.text }}</span>
+              </label>
+              {% endfor %}
+          </div>
+
+          {# Matching: two-column chooser #}
+          {% elif q.qtype == 'match' and q.match_left and q.options %}
+            <div class="bs-match-grid" role="group" aria-label="Matching question">
+              <div class="bs-match-left">
+                {% for left in q.match_left %}
+                  <div class="bs-match-row">
+                    <div class="bs-match-prompt">{{ left.label }}) {{ left.text }}</div>
+                    <div class="bs-match-select">
+                      <select name="answer_match_{{ q.index }}_{{ left.label }}" aria-label="Match for {{ left.label }}">
+                        <option value="">Select...</option>
+                        {% for opt in q.options %}
+                          <option value="{{ opt.label }}"
+                            {% if existing_answers[q.index]|default('') %}
+                              {% set ua = existing_answers[q.index] %}
+                              {% set pairs = ua.split(',') %}
+                              {% for p in pairs %}
+                                {% set parts = p.split('-') %}
+                                {% if parts|length == 2 and parts[0].strip() == left.label and parts[1].strip() == opt.label %}selected{% endif %}
+                              {% endfor %}
+                            {% endif %}
+                          >{{ opt.label }}) {{ opt.text }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="bs-match-right">
+                <div class="bs-match-right-title">Options</div>
+                <ul>
+                  {% for opt in q.options %}
+                    <li><strong>{{ opt.label }})</strong> {{ opt.text }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+
+          {# Fallback #}
+          {% else %}
+            <textarea
+              name="answer_{{ q.index }}"
+              class="bs-answer-input"
+              rows="3"
+              placeholder="Type your answer (T/F, letter(s), or 1-B,2-E,...)"
+            >{{ existing_answers[q.index] }}</textarea>
+          {% endif %}
+
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="bs-question-footer">
+        <div class="bs-page-indicator">Page {{ page_index }} of {{ total_pages }}</div>
+        <div class="bs-question-nav">
+          <button type="submit" name="prev_page" class="bs-button" {% if page_start == 0 %}disabled{% endif %}>
+            Previous Page
+          </button>
+          <button type="submit" name="next_page" class="bs-button bs-button-primary" {% if page_end >= total %}disabled{% endif %}>
+            Next Page
+          </button>
+        </div>
+      </div>
+
+      <div class="bs-submit-row">
+        <button type="submit" name="submit" class="bs-button bs-button-primary bs-button-wide">
+          Submit Quiz
+        </button>
+        <div class="bs-submit-status">
+          {{ answered_count }} of {{ total }} questions saved
+        </div>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

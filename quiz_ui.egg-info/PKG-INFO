@@ -1,3 +1,11 @@
+Metadata-Version: 2.4
+Name: quiz-ui
+Version: 0.1.0
+Summary: Lightweight Flask quiz UI that renders practice_test.md and serves it locally
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: flask>=3.0
+
 # Quiz UI
 
 Lightweight Flask app that renders a generic LMS-style quiz practice UI from a Markdown file (typically `practice_test.md`). The server never mutates the source file; it only reads, parses, and renders it for local practice.
