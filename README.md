@@ -13,10 +13,10 @@ Lightweight Flask app that renders a generic LMS-style quiz practice UI from a M
 ## Quick start
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python run_quiz_server.py /path/to/practice_test.md
+python3 run_quiz_server.py /path/to/practice_test.md
 ```
 
 Then open `http://127.0.0.1:8000`, click Start, answer questions, and Submit.
