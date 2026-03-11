@@ -42,9 +42,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const gradeUrl = quizShellEl ? quizShellEl.getAttribute("data-grade-url") : null;
 
   function isQuestionAnswered(cardEl) {
-    const inputs = cardEl.querySelectorAll("input, textarea");
-    for (const el of inputs) {
+    const fields = cardEl.querySelectorAll("input, textarea, select");
+    for (const el of fields) {
       if (el.tagName === "TEXTAREA") {
+        if ((el.value || "").trim().length > 0) return true;
+        continue;
+      }
+
+      if (el.tagName === "SELECT") {
         if ((el.value || "").trim().length > 0) return true;
         continue;
       }
@@ -80,6 +85,19 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     if (input) return (input.value || "").trim();
 
+    const selects = cardEl.querySelectorAll('select[name^="answer_match_"]');
+    if (selects.length) {
+      const pairs = [];
+      for (const selectEl of selects) {
+        const value = (selectEl.value || "").trim();
+        if (!value) continue;
+        const nameMatch = selectEl.name.match(/^answer_match_\d+_(.+)$/);
+        if (!nameMatch) continue;
+        pairs.push(`${nameMatch[1]}-${value}`);
+      }
+      return pairs.join(",");
+    }
+
     return "";
   }
 
@@ -112,7 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const tile = document.querySelector(`.bs-nav-tile[data-question-index="${qIndex}"]`);
     if (!tile) return;
 
-    tile.classList.toggle("is-answered", isQuestionAnswered(cardEl));
+    const answered = isQuestionAnswered(cardEl);
+    tile.classList.toggle("is-answered", answered);
+
+    const markEl = tile.querySelector(".bs-nav-mark");
+    if (markEl) {
+      markEl.textContent = answered ? "✓" : "--";
+    }
 
     if (!showAnswers) return;
 

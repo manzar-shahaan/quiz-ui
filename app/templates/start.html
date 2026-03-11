@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="bs-card bs-start-card">
+  <h1 class="bs-start-title">{{ quiz.title }}</h1>
+  <p class="bs-start-subtitle">{{ quiz_filename or "Practice quiz" }}</p>
+
   <form method="post" action="{{ url_for('main.start_quiz') }}">
     <div class="bs-start-shell">
       <div class="bs-start-main">
         {% if quiz.meta_lines %}
-        <ul class="bs-quiz-meta">
+        <ul class="bs-start-meta">
           {% for line in quiz.meta_lines %}
             <li>{{ line }}</li>
           {% endfor %}

@@ -20,6 +20,7 @@ from .models import Quiz, Question
 from . import grading, feedback
 
 bp = Blueprint("main", __name__)
+QUIZ_PAGE_SIZE = 8
 
 
 @dataclass
@@ -43,7 +44,13 @@ def _get_quiz() -> Quiz:
 @bp.route("/", methods=["GET"])
 def start_page():
     quiz: Quiz = _get_quiz()
-    return render_template("start.html", quiz=quiz, error=None, elapsed_seconds=None)
+    return render_template(
+        "start.html",
+        quiz=quiz,
+        error=None,
+        elapsed_seconds=None,
+        page_variant="start",
+    )
 
 
 @bp.route("/start", methods=["POST"])
@@ -75,6 +82,7 @@ def quiz_page():
             quiz=quiz,
             error="No questions were found in this practice_test.md.",
             elapsed_seconds=None,
+            page_variant="start",
         )
 
     try:
@@ -83,7 +91,7 @@ def quiz_page():
         index = 0
     index = max(0, min(index, total - 1))
 
-    page_size = 5
+    page_size = QUIZ_PAGE_SIZE
     page_start = (index // page_size) * page_size
     page_end = min(total, page_start + page_size)
     page_questions = questions[page_start:page_end]
@@ -123,8 +131,6 @@ def quiz_page():
         elif "submit" in request.form:
             return redirect(url_for("main.summary_page"))
 
-    current_answered = bool(existing_answers.get(index, "").strip())
-    progress_pct = int((index + 1) / total * 100) if total else 0
     now = datetime.now()
     elapsed_seconds = 0
     if _attempt_state.started_at:
@@ -170,7 +176,6 @@ def quiz_page():
 
     page_index = index // page_size + 1 if total else 0
     total_pages = (total + page_size - 1) // page_size if total else 0
-
     return render_template(
         "quiz.html",
         quiz=quiz,
@@ -181,13 +186,14 @@ def quiz_page():
         page_index=page_index,
         total_pages=total_pages,
         answered_count=answered_count,
-        current_answered=current_answered,
         page_questions=page_questions,
         page_start=page_start,
         page_end=page_end,
+        page_size=page_size,
         existing_answers=existing_answers,
         existing_letters_map=existing_letters_map,
         show_answers_in_sidebar=show_answers_in_sidebar,
+        page_variant="quiz",
     )
 
 
@@ -280,4 +286,5 @@ def summary_page():
         feedback_error=_attempt_state.feedback_error,
         time_taken_seconds=time_taken_seconds,
         elapsed_seconds=None,
+        page_variant="summary",
     )

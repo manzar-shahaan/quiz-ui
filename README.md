@@ -35,15 +35,24 @@ After installation, launch the server from anywhere with:
 quiz-ui /path/to/practice_test.md
 ```
 
-## Quiz file format (high level)
+Print the format guide without starting the server:
+
+```bash
+quiz-ui --format
+```
+
+## Quiz file format (authoritative)
+
+Only these question types are supported: `(MC)`, `(Multi)`, `(T/F)`, `(Match)`. Anything else will be ignored or fail to parse.
 
 Rules:
 
 - Title: first Markdown heading (first line starting with `#`)
-- Questions: lines starting with `1)`, `2)`, etc.
-- Question type: optional tag in parentheses, e.g. `(MC)`, `(multi)`, `(T/F)`, `(match)`
-- Answer key: a line containing `Answer: ...` (case-insensitive)
-- Matching answers: use `number-letter` pairs like `1-B,2-D`
+- Questions: numbered `1)`, `2)`, etc.
+- Question type tag (one of the supported types) in parentheses after the question number/text.
+- Options: `A)`, `B)`, `C)...` with the answer line immediately after the options block.
+- Answer line: starts with `Answer:` (case-insensitive).
+- Matching answers: `number-letter` pairs like `1-B,2-D`.
 
 Example (generic):
 

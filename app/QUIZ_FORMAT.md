@@ -9,13 +9,6 @@ Use this template in any repo. Copy/symlink this file next to your `practice_tes
 - Answer line: starts with `Answer:` directly under the question body.
 
 ## Supported question types and syntax
-
-**Supported types (exact labels in parentheses):**
-- `(MC)` single-answer multiple choice; answers use one letter like `A`.
-- `(Multi)` multiple-select; answers use comma-separated letters like `A,C`.
-- `(T/F)` true/false; answers use `T` or `F`.
-- `(Match)` matching left numbers to right letters; answers use `number-letter` pairs like `1-A,2-B`.
-
 1) Multiple choice (single answer)
 ```
 1) (MC) Question text?

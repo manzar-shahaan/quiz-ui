@@ -1,3 +1,5 @@
 graft app/static
 graft app/templates
 include README.md
+include QUIZ_FORMAT.md
+include app/QUIZ_FORMAT.md
