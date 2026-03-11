@@ -7,8 +7,13 @@
     <h1 class="bs-quiz-page-title">{{ quiz.title }}</h1>
     <div class="bs-quiz-page-tools">
       <span class="bs-quiz-spinner" aria-hidden="true"></span>
-      <span class="bs-timer" data-live="1" data-elapsed="{{ elapsed_seconds|int }}">—</span>
-      <span class="bs-quiz-timer-copy">remaining</span>
+      {% if time_limit_seconds %}
+        <span class="bs-timer" data-live="1" data-mode="countdown" data-seconds="{{ remaining_seconds|int }}" data-timeout-submit="1">—</span>
+        <span class="bs-quiz-timer-copy">remaining</span>
+      {% else %}
+        <span class="bs-timer" data-live="1" data-mode="elapsed" data-seconds="{{ elapsed_seconds|int }}">—</span>
+        <span class="bs-quiz-timer-copy">elapsed</span>
+      {% endif %}
       <a class="bs-quiz-close" href="{{ url_for('main.start_page') }}" aria-label="Exit quiz">×</a>
     </div>
   </header>
@@ -44,7 +49,7 @@
     </aside>
 
     <section class="bs-question-panel">
-      <form method="post" action="{{ url_for('main.quiz_page', index=index) }}">
+      <form method="post" action="{{ url_for('main.quiz_page', index=index) }}" class="bs-quiz-form">
         {% for q in page_questions %}
         <article class="bs-question-card" id="q-{{ q.index }}">
           <div class="bs-question-header">

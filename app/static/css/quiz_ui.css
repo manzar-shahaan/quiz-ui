@@ -68,47 +68,58 @@ body {
   min-width: 0;
 }
 
-.bs-start-prefs {
+.bs-start-config {
   width: 260px;
-  border-left: 1px solid #e5e9f0;
-  padding-left: 1rem;
-}
-
-.bs-prefs-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.bs-prefs-label {
-  font-weight: 700;
-}
-
-.bs-prefs-toggle {
-  width: 28px;
-  height: 28px;
+  padding: 1rem;
+  border: 1px solid #dbe2eb;
   border-radius: 6px;
-  border: 1px solid #cdd5e0;
-  background: #fff;
-  cursor: pointer;
+  background: #fafbfd;
+}
+
+.bs-start-config-title {
   font-weight: 700;
-  color: #1b2a3c;
+  font-size: 1rem;
+  color: #293241;
 }
 
-.bs-prefs-panel {
-  margin-top: 0.6rem;
+.bs-start-config-copy {
+  margin-top: 0.25rem;
+  color: #66707d;
+  font-size: 0.92rem;
 }
 
-.bs-start-prefs.is-collapsed .bs-prefs-panel {
-  display: none;
+.bs-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.bs-config-label {
+  font-weight: 700;
+  color: #2f3742;
+}
+
+.bs-config-input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #c7d1dd;
+  border-radius: 4px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.bs-config-help {
+  color: #6b7480;
+  font-size: 0.85rem;
 }
 
 .bs-pref-option {
   display: flex;
   gap: 0.5rem;
-  align-items: center;
+  align-items: flex-start;
   font-size: 0.95rem;
+  margin-top: 1rem;
 }
 
 .bs-quiz-shell {
@@ -417,6 +428,11 @@ body {
   background: #fff8e5;
 }
 
+.bs-summary-note {
+  color: #8a5a00;
+  font-weight: 600;
+}
+
 .bs-agents-snippet {
   width: 100%;
   margin-top: 0.5rem;
@@ -611,14 +627,8 @@ body {
     width: 100%;
     justify-content: flex-start;
   }
-  .bs-start-prefs {
+  .bs-start-config {
     width: 100%;
-    border-left: none;
-    padding-left: 0;
     margin-top: 1rem;
-  }
-
-  .bs-start-prefs.is-collapsed {
-    width: 100%;
   }
 }

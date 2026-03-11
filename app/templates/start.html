@@ -24,26 +24,33 @@
         </button>
       </div>
 
-      <aside class="bs-start-prefs is-collapsed" aria-label="Preferences">
-        <div class="bs-prefs-header">
-          <div class="bs-prefs-label">Preferences</div>
-          <button
-            type="button"
-            class="bs-prefs-toggle"
-            aria-expanded="false"
-            aria-controls="bs-prefs-panel"
-            title="Show preferences"
-          >
-            ›
-          </button>
-        </div>
+      <aside class="bs-start-config" aria-label="Configuration">
+        <div class="bs-start-config-title">Configuration</div>
+        <div class="bs-start-config-copy">Adjust quiz behavior before you begin.</div>
 
-        <div class="bs-prefs-panel" id="bs-prefs-panel">
-          <label class="bs-pref-option">
-            <input type="checkbox" name="show_answers_in_sidebar" value="1">
-            <span>Show answers in sidebar</span>
-          </label>
-        </div>
+        <label class="bs-config-field">
+          <span class="bs-config-label">Timer (minutes)</span>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            name="timer_minutes"
+            class="bs-config-input"
+            value="{{ timer_minutes }}"
+            placeholder="Leave blank for stopwatch mode"
+          >
+          <span class="bs-config-help">Leave blank to use a stopwatch instead of a countdown timer.</span>
+        </label>
+
+        <label class="bs-pref-option">
+          <input
+            type="checkbox"
+            name="show_answers_in_sidebar"
+            value="1"
+            {% if show_answers_in_sidebar %}checked{% endif %}
+          >
+          <span>Show answers in sidebar</span>
+        </label>
       </aside>
     </div>
   </form>

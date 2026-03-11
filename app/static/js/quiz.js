@@ -10,31 +10,42 @@ function formatTime(sec) {
 document.addEventListener("DOMContentLoaded", () => {
   const timerEls = document.querySelectorAll(".bs-timer");
   for (const timerEl of timerEls) {
-    const base = parseInt(timerEl.getAttribute("data-elapsed") || "0", 10);
+    const base = parseInt(
+      timerEl.getAttribute("data-seconds") || timerEl.getAttribute("data-elapsed") || "0",
+      10
+    );
     if (Number.isNaN(base)) continue;
 
     const isLive = timerEl.getAttribute("data-live") === "1";
+    const mode = timerEl.getAttribute("data-mode") || "elapsed";
+    const shouldSubmitOnTimeout = timerEl.getAttribute("data-timeout-submit") === "1";
 
     let counter = base;
     timerEl.textContent = formatTime(counter);
 
     if (isLive) {
       setInterval(() => {
-        counter += 1;
+        if (mode === "countdown") {
+          counter = Math.max(0, counter - 1);
+        } else {
+          counter += 1;
+        }
         timerEl.textContent = formatTime(counter);
+
+        if (mode === "countdown" && counter <= 0 && shouldSubmitOnTimeout) {
+          const formEl = document.querySelector(".bs-quiz-form");
+          if (!formEl || formEl.dataset.autoSubmitted === "1") return;
+
+          formEl.dataset.autoSubmitted = "1";
+          const submitMarkerEl = document.createElement("input");
+          submitMarkerEl.type = "hidden";
+          submitMarkerEl.name = "submit";
+          submitMarkerEl.value = "1";
+          formEl.appendChild(submitMarkerEl);
+          formEl.requestSubmit();
+        }
       }, 1000);
     }
-  }
-
-  // Start page preferences panel toggle.
-  const prefsEl = document.querySelector(".bs-start-prefs");
-  const prefsToggleEl = document.querySelector(".bs-prefs-toggle");
-  if (prefsEl && prefsToggleEl) {
-    prefsToggleEl.addEventListener("click", () => {
-      const collapsed = prefsEl.classList.toggle("is-collapsed");
-      prefsToggleEl.setAttribute("aria-expanded", collapsed ? "false" : "true");
-      prefsToggleEl.textContent = collapsed ? "›" : "‹";
-    });
   }
 
   const quizShellEl = document.querySelector(".bs-quiz-shell");

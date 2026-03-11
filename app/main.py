@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 import re
@@ -27,7 +27,9 @@ QUIZ_PAGE_SIZE = 8
 class AttemptState:
     answers: Dict[int, str]  # question_index -> answer string
     show_answers_in_sidebar: bool = False
+    time_limit_seconds: Optional[int] = None
     submitted: bool = False
+    timed_out: bool = False
     started_at: Optional[datetime] = None
     submitted_at: Optional[datetime] = None
     feedback_path: Optional[str] = None
@@ -41,6 +43,33 @@ def _get_quiz() -> Quiz:
     return current_app.config["QUIZ"]
 
 
+def _elapsed_seconds(now: Optional[datetime] = None) -> int:
+    if not _attempt_state.started_at:
+        return 0
+    ref = now or datetime.now()
+    return max(0, int((ref - _attempt_state.started_at).total_seconds()))
+
+
+def _remaining_seconds(now: Optional[datetime] = None) -> Optional[int]:
+    if _attempt_state.time_limit_seconds is None:
+        return None
+    return max(0, _attempt_state.time_limit_seconds - _elapsed_seconds(now))
+
+
+def _is_time_up(now: Optional[datetime] = None) -> bool:
+    remaining = _remaining_seconds(now)
+    return remaining is not None and remaining <= 0
+
+
+def _submission_timestamp(now: Optional[datetime] = None) -> datetime:
+    ref = now or datetime.now()
+    if _attempt_state.started_at and _attempt_state.time_limit_seconds is not None:
+        deadline = _attempt_state.started_at + timedelta(seconds=_attempt_state.time_limit_seconds)
+        if ref >= deadline:
+            return deadline
+    return ref
+
+
 @bp.route("/", methods=["GET"])
 def start_page():
     quiz: Quiz = _get_quiz()
@@ -48,6 +77,8 @@ def start_page():
         "start.html",
         quiz=quiz,
         error=None,
+        timer_minutes="",
+        show_answers_in_sidebar=False,
         elapsed_seconds=None,
         page_variant="start",
     )
@@ -57,11 +88,44 @@ def start_page():
 def start_quiz():
     global _attempt_state
     show_answers = bool(request.form.get("show_answers_in_sidebar"))
+    timer_minutes_raw = (request.form.get("timer_minutes") or "").strip()
+    time_limit_seconds: Optional[int] = None
+
+    if timer_minutes_raw:
+        try:
+            timer_minutes = int(timer_minutes_raw)
+        except ValueError:
+            quiz: Quiz = _get_quiz()
+            return render_template(
+                "start.html",
+                quiz=quiz,
+                error="Timer must be a whole number of minutes.",
+                timer_minutes=timer_minutes_raw,
+                show_answers_in_sidebar=show_answers,
+                elapsed_seconds=None,
+                page_variant="start",
+            )
+
+        if timer_minutes <= 0:
+            quiz: Quiz = _get_quiz()
+            return render_template(
+                "start.html",
+                quiz=quiz,
+                error="Timer must be greater than 0 minutes.",
+                timer_minutes=timer_minutes_raw,
+                show_answers_in_sidebar=show_answers,
+                elapsed_seconds=None,
+                page_variant="start",
+            )
+
+        time_limit_seconds = timer_minutes * 60
 
     _attempt_state = AttemptState(
         answers={},
         show_answers_in_sidebar=show_answers,
+        time_limit_seconds=time_limit_seconds,
         submitted=False,
+        timed_out=False,
         started_at=datetime.now(),
         submitted_at=None,
         feedback_path=None,
@@ -81,6 +145,8 @@ def quiz_page():
             "start.html",
             quiz=quiz,
             error="No questions were found in this practice_test.md.",
+            timer_minutes="",
+            show_answers_in_sidebar=False,
             elapsed_seconds=None,
             page_variant="start",
         )
@@ -122,6 +188,10 @@ def quiz_page():
             if ua is not None:
                 _attempt_state.answers[q.index] = ua
 
+        if _is_time_up():
+            _attempt_state.timed_out = True
+            return redirect(url_for("main.summary_page"))
+
         if "next_page" in request.form:
             next_index = min(page_start + page_size, total - 1)
             return redirect(url_for("main.quiz_page", index=next_index))
@@ -132,9 +202,12 @@ def quiz_page():
             return redirect(url_for("main.summary_page"))
 
     now = datetime.now()
-    elapsed_seconds = 0
-    if _attempt_state.started_at:
-        elapsed_seconds = int((now - _attempt_state.started_at).total_seconds())
+    if _is_time_up(now):
+        _attempt_state.timed_out = True
+        return redirect(url_for("main.summary_page"))
+
+    elapsed_seconds = _elapsed_seconds(now)
+    remaining_seconds = _remaining_seconds(now)
 
     def _answered(idx: int) -> bool:
         ans = _attempt_state.answers.get(idx)
@@ -182,6 +255,8 @@ def quiz_page():
         index=index,
         total=total,
         elapsed_seconds=elapsed_seconds,
+        remaining_seconds=remaining_seconds,
+        time_limit_seconds=_attempt_state.time_limit_seconds,
         nav_pages=nav_pages,
         page_index=page_index,
         total_pages=total_pages,
@@ -249,7 +324,8 @@ def summary_page():
             results.append((q, ua, score, correct_disp))
 
     if not _attempt_state.submitted:
-        _attempt_state.submitted_at = datetime.now()
+        _attempt_state.submitted_at = _submission_timestamp()
+        _attempt_state.timed_out = _is_time_up(_attempt_state.submitted_at)
 
         # Generate a feedback file beside the practice test (only once).
         try:
@@ -285,6 +361,7 @@ def summary_page():
         feedback_path=_attempt_state.feedback_path,
         feedback_error=_attempt_state.feedback_error,
         time_taken_seconds=time_taken_seconds,
+        timed_out=_attempt_state.timed_out,
         elapsed_seconds=None,
         page_variant="summary",
     )
