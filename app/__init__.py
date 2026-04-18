@@ -17,10 +17,17 @@ def _render_prompt(text: str) -> str:
             result.append(f'<span class="bs-qtext-prose">{_html_lib.escape(before)}</span>')
         lang = m.group(1).strip()
         code = m.group(2)
-        lang_attr = f' class="language-{lang}"' if lang else ''
-        result.append(
-            f'<pre class="bs-code-block"><code{lang_attr}>{_html_lib.escape(code)}</code></pre>'
-        )
+        if lang:
+            result.append(
+                f'<div class="bs-code-wrapper">'
+                f'<span class="bs-code-lang">{_html_lib.escape(lang)}</span>'
+                f'<pre class="bs-code-block"><code class="language-{lang}">{_html_lib.escape(code)}</code></pre>'
+                f'</div>'
+            )
+        else:
+            result.append(
+                f'<pre class="bs-code-block"><code>{_html_lib.escape(code)}</code></pre>'
+            )
         last_end = m.end()
     remainder = text[last_end:]
     if remainder:

@@ -360,6 +360,26 @@ body {
   line-height: 1.45;
 }
 
+.bs-code-wrapper {
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  border: 1px solid #e1e5ea;
+  overflow: hidden;
+}
+
+.bs-code-lang {
+  display: block;
+  background: #eef1f5;
+  color: #5a6473;
+  font-family: "Lato", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.85rem;
+  border-bottom: 2px solid #d0d6de;
+}
+
 .bs-code-block {
   margin: 0.5rem 0;
   border-radius: 6px;
@@ -368,6 +388,12 @@ body {
   overflow-x: auto;
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+.bs-code-wrapper .bs-code-block {
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
 .bs-code-block code {
