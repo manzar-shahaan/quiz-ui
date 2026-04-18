@@ -347,16 +347,34 @@ body {
 }
 
 .bs-question-text {
-  white-space: pre-wrap;
-  font-family: inherit;
   margin: 0;
   padding: 0;
-  background: transparent;
-  border-radius: 0;
-  border: 0;
+}
+
+.bs-qtext-prose {
+  display: block;
+  white-space: pre-wrap;
+  font-family: inherit;
   color: #30343a;
   font-size: 0.98rem;
   line-height: 1.45;
+}
+
+.bs-code-block {
+  margin: 0.5rem 0;
+  border-radius: 6px;
+  border: 1px solid #e1e5ea;
+  background: #f8f9fa;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.bs-code-block code {
+  display: block;
+  padding: 0.75rem 1rem;
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  background: transparent !important;
 }
 
 .bs-answer-input {
@@ -631,4 +649,193 @@ body {
     width: 100%;
     margin-top: 1rem;
   }
+}
+
+/* ── Summary page ─────────────────────────────────────── */
+
+.bs-summary-meta {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.bs-summary-meta p {
+  margin: 0.2rem 0;
+}
+
+.bs-summary-submitted {
+  color: #3a6b3a;
+  font-weight: 600;
+  margin: 0.5rem 0 0;
+}
+
+.bs-summary-feedback {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e4ea;
+}
+
+.bs-sq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.bs-sq-card {
+  border: 1px solid #d3d7dd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bs-sq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid #e8eaed;
+  background: #fafbfd;
+}
+
+.bs-sq-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #2f2f2f;
+}
+
+.bs-sq-type {
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: #7a8390;
+  margin-left: 0.3rem;
+}
+
+.bs-sq-score {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.bs-sq-card.is-correct  .bs-sq-score { color: #2e8b57; }
+.bs-sq-card.is-partial  .bs-sq-score { color: #b38500; }
+.bs-sq-card.is-incorrect .bs-sq-score { color: #c9302c; }
+
+.bs-sq-prompt {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.97rem;
+  color: #2d333b;
+  line-height: 1.5;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.bs-sq-prompt .bs-qtext-prose {
+  color: #2d333b;
+}
+
+.bs-sq-options {
+  padding: 0.5rem 0.85rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bs-sq-opt {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.93rem;
+  color: #3a3a3a;
+}
+
+.bs-sq-opt.is-correct-chosen  { background: #eaf7ef; color: #1a5c34; }
+.bs-sq-opt.is-correct-missed  { background: #eaf7ef; color: #1a5c34; }
+.bs-sq-opt.is-wrong-chosen    { background: #fdeaea; color: #7a0000; }
+
+.bs-sq-opt-icon {
+  flex: 0 0 1.05rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.62rem;
+  line-height: 1;
+  background: transparent;
+  color: transparent;
+}
+
+.bs-sq-opt.is-correct-chosen .bs-sq-opt-icon,
+.bs-sq-opt.is-correct-missed .bs-sq-opt-icon { background: #2e8b57; color: #fff; }
+.bs-sq-opt.is-wrong-chosen   .bs-sq-opt-icon { background: #c9302c; color: #fff; }
+
+.bs-sq-opt-letter {
+  flex: 0 0 auto;
+  font-weight: 700;
+  min-width: 1.1rem;
+}
+
+.bs-sq-opt-text {
+  flex: 1;
+}
+
+.bs-sq-opt-hint {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.bs-sq-no-answer {
+  padding: 0.5rem 0.85rem;
+  color: #888;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Match summary */
+.bs-sq-match {
+  padding: 0.5rem 0.85rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bs-sq-match-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.93rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.bs-sq-match-row.is-correct   { background: #eaf7ef; color: #1a5c34; }
+.bs-sq-match-row.is-incorrect { background: #fdeaea; color: #7a0000; }
+
+.bs-sq-match-icon {
+  flex: 0 0 1.05rem;
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.bs-sq-match-row.is-correct   .bs-sq-match-icon { background: #2e8b57; color: #fff; }
+.bs-sq-match-row.is-incorrect .bs-sq-match-icon { background: #c9302c; color: #fff; }
+
+.bs-sq-match-left   { font-weight: 600; }
+.bs-sq-match-arrow  { opacity: 0.6; }
+
+.bs-sq-match-correct {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: #2e8b57;
 }

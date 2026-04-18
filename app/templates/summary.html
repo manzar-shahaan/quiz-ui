@@ -1,68 +1,111 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="bs-card bs-summary-card">
-  <h1 class="bs-summary-title">Quiz Submitted</h1>
+  <h1 class="bs-summary-title">{{ quiz.title }} — Results</h1>
 
-  <p>
-    Score:
-    <strong>{{ total_points|round(2) }}/{{ total_questions }}</strong>
-    ({{ pct|round(1) }}%)
-  </p>
+  <div class="bs-summary-meta">
+    <p>Score: <strong>{{ total_points|round(2) }} / {{ total_questions }}</strong> &nbsp;({{ pct|round(1) }}%)</p>
+    <p>Time taken: <strong><span class="bs-timer" data-elapsed="{{ time_taken_seconds|int }}">—</span></strong></p>
+    {% if timed_out %}
+      <p class="bs-summary-note">Time expired and the quiz was submitted automatically.</p>
+    {% endif %}
+  </div>
 
-  <p>
-    Time taken:
-    <strong><span class="bs-timer" data-elapsed="{{ time_taken_seconds|int }}">—</span></strong>
-  </p>
+  <p class="bs-summary-submitted">Your quiz has been submitted successfully.</p>
 
-  {% if timed_out %}
-    <p class="bs-summary-note">Time expired and the quiz was submitted automatically.</p>
-  {% endif %}
+  <div class="bs-sq-list">
+    {% for d in result_details %}
+    <div class="bs-sq-card is-{{ d.status }}">
 
-  <h2>Question Results</h2>
-  <table class="bs-results-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Type</th>
-        <th>Your Answer</th>
-        <th>Correct</th>
-        <th>Mark</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for q, ua, score, correct in results %}
-        {% if score >= 0.999 %}
-          {% set status = "Correct" %}
-        {% elif score > 0 %}
-          {% set status = "Partial" %}
-        {% else %}
-          {% set status = "Incorrect" %}
-        {% endif %}
+      <div class="bs-sq-header">
+        <span class="bs-sq-label">Question {{ d.q.file_qnum }}
+          <span class="bs-sq-type">({{ d.q.qtype }})</span>
+        </span>
+        <span class="bs-sq-score">
+          {% if d.status == 'correct' %}
+            {{ d.score|round(2) }} / 1 point
+          {% elif d.status == 'partial' %}
+            {{ (d.score * 100)|round(0)|int }}% credit
+          {% else %}
+            0 / 1 point
+          {% endif %}
+        </span>
+      </div>
 
-        <tr class="status-{{ status|lower }}">
-          <td>{{ q.file_qnum }}</td>
-          <td>{{ q.qtype }}</td>
-          <td>{{ ua if ua is not none and ua != "" else "—" }}</td>
-          <td>{{ correct }}</td>
-          <td>
-            {{ status }}
-            {% if status == "Partial" %}
-              ({{ (score * 100)|round(1) }}%)
+      <div class="bs-sq-prompt">{{ d.q.prompt | render_prompt | safe }}</div>
+
+      {% if not d.ua %}
+        <div class="bs-sq-no-answer">Not answered</div>
+
+      {% elif d.q.qtype == 't/f' %}
+        <div class="bs-sq-options">
+          {% for tf in d.tf_states %}
+          <div class="bs-sq-opt is-{{ tf.state }}">
+            <span class="bs-sq-opt-icon">
+              {%- if tf.state in ('correct-chosen', 'correct-missed') -%}✓
+              {%- elif tf.state == 'wrong-chosen' -%}✗
+              {%- else -%}&nbsp;{%- endif -%}
+            </span>
+            <span class="bs-sq-opt-text">{{ tf.label }}</span>
+            {% if tf.state == 'correct-missed' %}
+              <span class="bs-sq-opt-hint">← correct answer</span>
+            {% elif tf.state == 'wrong-chosen' %}
+              <span class="bs-sq-opt-hint">← your answer</span>
             {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          </div>
+          {% endfor %}
+        </div>
 
-  <h2>Feedback file</h2>
-  {% if feedback_path %}
-    <p>Saved to: <code>{{ feedback_path }}</code></p>
-  {% elif feedback_error %}
-    <p>Could not write feedback file: <code>{{ feedback_error }}</code></p>
-  {% else %}
-    <p>No feedback file generated.</p>
-  {% endif %}
+      {% elif d.q.qtype in ('mc', 'multi') %}
+        <div class="bs-sq-options">
+          {% for item in d.option_states %}
+          <div class="bs-sq-opt is-{{ item.state }}">
+            <span class="bs-sq-opt-icon">
+              {%- if item.state in ('correct-chosen', 'correct-missed') -%}✓
+              {%- elif item.state == 'wrong-chosen' -%}✗
+              {%- else -%}&nbsp;{%- endif -%}
+            </span>
+            <span class="bs-sq-opt-letter">{{ item.opt.label }}.</span>
+            <span class="bs-sq-opt-text">{{ item.opt.text }}</span>
+            {% if item.state == 'correct-missed' %}
+              <span class="bs-sq-opt-hint">← correct answer</span>
+            {% elif item.state == 'wrong-chosen' %}
+              <span class="bs-sq-opt-hint">← your answer</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+      {% elif d.q.qtype == 'match' %}
+        <div class="bs-sq-match">
+          {% for row in d.match_rows %}
+          <div class="bs-sq-match-row {% if row.is_correct %}is-correct{% else %}is-incorrect{% endif %}">
+            <span class="bs-sq-match-icon">{% if row.is_correct %}✓{% else %}✗{% endif %}</span>
+            <span class="bs-sq-match-left">{{ row.left.label }}) {{ row.left.text }}</span>
+            <span class="bs-sq-match-arrow">→</span>
+            <span class="bs-sq-match-user">{{ row.user_r }}) {{ row.user_text }}</span>
+            {% if not row.is_correct %}
+              <span class="bs-sq-match-correct">(correct: {{ row.correct_r }}) {{ row.correct_text }})</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bs-summary-feedback">
+    <h2>Feedback file</h2>
+    {% if feedback_path %}
+      <p>Saved to: <code>{{ feedback_path }}</code></p>
+    {% elif feedback_error %}
+      <p>Could not write feedback file: <code>{{ feedback_error }}</code></p>
+    {% else %}
+      <p>No feedback file generated.</p>
+    {% endif %}
+  </div>
 
 </div>
 {% endblock %}

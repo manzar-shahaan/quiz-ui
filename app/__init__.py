@@ -1,7 +1,31 @@
+import html as _html_lib
+import re as _re_lib
 from pathlib import Path
 from flask import Flask
 
 from . import quiz_parser
+
+
+def _render_prompt(text: str) -> str:
+    """Convert markdown ``` code fences to <pre><code> blocks; escape remaining text."""
+    fence_re = _re_lib.compile(r'```(\w*)\n(.*?)```', _re_lib.DOTALL)
+    result = []
+    last_end = 0
+    for m in fence_re.finditer(text):
+        before = text[last_end:m.start()]
+        if before:
+            result.append(f'<span class="bs-qtext-prose">{_html_lib.escape(before)}</span>')
+        lang = m.group(1).strip()
+        code = m.group(2)
+        lang_attr = f' class="language-{lang}"' if lang else ''
+        result.append(
+            f'<pre class="bs-code-block"><code{lang_attr}>{_html_lib.escape(code)}</code></pre>'
+        )
+        last_end = m.end()
+    remainder = text[last_end:]
+    if remainder:
+        result.append(f'<span class="bs-qtext-prose">{_html_lib.escape(remainder)}</span>')
+    return ''.join(result)
 
 
 def create_app(quiz_path: Path) -> Flask:
@@ -13,6 +37,8 @@ def create_app(quiz_path: Path) -> Flask:
 
     quiz = quiz_parser.parse_quiz(quiz_path)
     app.config["QUIZ"] = quiz
+
+    app.jinja_env.filters['render_prompt'] = _render_prompt
 
     # DEBUG: print how many questions we actually loaded
     print(f"[quiz] Loaded {len(quiz.questions)} questions from {quiz_path}")

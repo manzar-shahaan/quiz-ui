@@ -308,6 +308,73 @@ def grade_api():
     return jsonify({"status": status})
 
 
+def _build_result_detail(q: Question, ua: Optional[str], score: float, correct_disp: str) -> dict:
+    ua = ua or ""
+    status = "correct" if score >= 0.999 else ("partial" if score > 0 else "incorrect")
+    detail: dict = {"q": q, "ua": ua, "score": score, "correct_disp": correct_disp, "status": status}
+
+    if q.qtype in ("mc", "multi"):
+        correct_letters = set(re.findall(r"[A-Z]", correct_disp.upper()))
+        user_letters = set(re.findall(r"[A-Z]", ua.upper())) if ua else set()
+        option_states = []
+        for opt in (q.options or []):
+            is_correct = opt.label in correct_letters
+            is_chosen = opt.label in user_letters
+            if is_correct and is_chosen:
+                state = "correct-chosen"
+            elif is_correct:
+                state = "correct-missed"
+            elif is_chosen:
+                state = "wrong-chosen"
+            else:
+                state = "neutral"
+            option_states.append({"opt": opt, "state": state})
+        detail["option_states"] = option_states
+
+    elif q.qtype == "t/f":
+        correct_t = correct_disp.strip().lower() == "true"
+        if ua:
+            user_t: Optional[bool] = ua.strip().lower() in ("t", "true")
+        else:
+            user_t = None
+        tf_states = []
+        for is_true_opt, label in [(True, "True"), (False, "False")]:
+            is_correct = is_true_opt == correct_t
+            is_chosen = user_t is not None and is_true_opt == user_t
+            if is_correct and is_chosen:
+                state = "correct-chosen"
+            elif is_correct:
+                state = "correct-missed"
+            elif is_chosen:
+                state = "wrong-chosen"
+            else:
+                state = "neutral"
+            tf_states.append({"label": label, "state": state})
+        detail["tf_states"] = tf_states
+
+    elif q.qtype == "match":
+        correct_map = q.match_map or {}
+        pairs = re.findall(r"(\d+)\s*-\s*([A-Z])", ua.upper()) if ua else []
+        user_map = {num: letter for num, letter in pairs}
+        opts_by_label = {opt.label: opt.text for opt in (q.options or [])}
+        match_rows = []
+        for left in (q.match_left or []):
+            correct_r = correct_map.get(left.label, "?")
+            user_r = user_map.get(left.label)
+            is_correct_match = user_r == correct_r if user_r else False
+            match_rows.append({
+                "left": left,
+                "correct_r": correct_r,
+                "correct_text": opts_by_label.get(correct_r, correct_r),
+                "user_r": user_r or "—",
+                "user_text": opts_by_label.get(user_r, user_r) if user_r else "—",
+                "is_correct": is_correct_match,
+            })
+        detail["match_rows"] = match_rows
+
+    return detail
+
+
 @bp.route("/summary", methods=["GET"])
 def summary_page():
     quiz: Quiz = _get_quiz()
@@ -351,10 +418,12 @@ def summary_page():
     total_points = sum(score for _, _, score, _ in results)
     pct = (total_points / total_questions * 100) if total_questions else 0.0
 
+    result_details = [_build_result_detail(q, ua, score, correct_disp) for q, ua, score, correct_disp in results]
+
     return render_template(
         "summary.html",
         quiz=quiz,
-        results=results,
+        result_details=result_details,
         total_questions=total_questions,
         total_points=total_points,
         pct=pct,

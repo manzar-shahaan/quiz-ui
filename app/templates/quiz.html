@@ -60,7 +60,7 @@
           </div>
 
           <div class="bs-question-body">
-            <pre class="bs-question-text">{{ q.prompt }}</pre>
+            <div class="bs-question-text">{{ q.prompt | render_prompt | safe }}</div>
 
             {% if q.qtype == 't/f' %}
               <div class="bs-options">

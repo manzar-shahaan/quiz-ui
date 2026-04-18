@@ -141,7 +141,15 @@ def parse_quiz(path: Path) -> Quiz:
 
         # --- Build question stem (without options) ---
         stem_parts: List[str] = [title_line]
+        in_code_fence = False
         for pl in prompt_lines[1:]:
+            if pl.strip().startswith("```"):
+                in_code_fence = not in_code_fence
+                stem_parts.append(pl.rstrip())
+                continue
+            if in_code_fence:
+                stem_parts.append(pl.rstrip())
+                continue
             # Skip option-like lines in the stem
             if re.match(r"^\s*[A-Z]\)\s+", pl):
                 break
