@@ -38,11 +38,22 @@ jobs:
       - name: Generate macOS icon (icns)
         if: matrix.name == 'macos'
         run: |
-          mkdir -p assets/icon.iconset
-          for s in 16 32 64 128 256 512; do
-            sips -z $s $s assets/icon.png --out assets/icon.iconset/icon_${s}x${s}.png
-          done
-          iconutil -c icns assets/icon.iconset -o assets/icon.icns
+          python3 - <<'EOF'
+          from PIL import Image
+          import subprocess, os
+          src = Image.open("assets/icon_512.png").convert("RGBA")
+          os.makedirs("assets/icon.iconset", exist_ok=True)
+          for name, size in [
+              ("icon_16x16.png", 16),   ("icon_16x16@2x.png", 32),
+              ("icon_32x32.png", 32),   ("icon_32x32@2x.png", 64),
+              ("icon_128x128.png", 128),("icon_128x128@2x.png", 256),
+              ("icon_256x256.png", 256),("icon_256x256@2x.png", 512),
+              ("icon_512x512.png", 512),
+          ]:
+              src.resize((size, size), Image.LANCZOS).save(f"assets/icon.iconset/{name}")
+          subprocess.run(["iconutil", "-c", "icns", "assets/icon.iconset", "-o", "assets/icon.icns"], check=True)
+          print("icon.icns generated")
+          EOF
 
       - name: Build
         run: pyinstaller launcher.spec
