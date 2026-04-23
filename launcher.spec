@@ -1,14 +1,14 @@
-import sys
+import sys, os
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 
 if sys.platform == "darwin":
-    icon_file = "assets/icon.icns"
+    icon_file = "assets/icon.icns" if os.path.exists("assets/icon.icns") else None
 elif sys.platform == "win32":
-    icon_file = "assets/icon.ico"
+    icon_file = "assets/icon.ico" if os.path.exists("assets/icon.ico") else None
 else:
-    icon_file = "assets/icon.png"
+    icon_file = "assets/icon.png" if os.path.exists("assets/icon.png") else None
 
 datas = [
     ("app/templates",  "app/templates"),

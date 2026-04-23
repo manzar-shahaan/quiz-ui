@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon.png" width="96" alt="Quiz UI logo">
+  <img src="water-cup-svgrepo-com.svg" width="96" alt="Quiz UI logo">
 </p>
 
 # Quiz UI
