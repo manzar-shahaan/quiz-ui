@@ -28,27 +28,47 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install system tkinter (Linux)
+      - name: Install system deps (Linux)
         if: matrix.name == 'linux'
-        run: sudo apt-get install -y python3-tk libmagickwand-dev
+        run: sudo apt-get install -y python3-tk
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: pip install flask customtkinter pyinstaller pillow
 
-      - name: Generate icons from SVG (Linux & macOS)
-        if: matrix.name != 'windows'
+      # ── Icon generation ────────────────────────────────────────────────
+
+      - name: Generate icons (Linux — cairosvg)
+        if: matrix.name == 'linux'
         run: |
+          pip install cairosvg
+          python3 - <<'EOF'
+          import cairosvg, io, os
+          from PIL import Image
+          os.makedirs("assets", exist_ok=True)
+          for size, name in [(512, "icon_512.png"), (256, "icon.png")]:
+              data = cairosvg.svg2png(url="water-cup-svgrepo-com.svg",
+                                      output_width=size, output_height=size)
+              Image.open(io.BytesIO(data)).convert("RGBA").save(f"assets/{name}")
+          print("PNGs done")
+          EOF
+
+      - name: Generate icons (macOS — ImageMagick)
+        if: matrix.name == 'macos'
+        run: |
+          brew install imagemagick
           mkdir -p assets
           magick water-cup-svgrepo-com.svg -resize 512x512 assets/icon_512.png
           magick water-cup-svgrepo-com.svg -resize 256x256 assets/icon.png
 
-      - name: Generate icons from SVG (Windows)
+      - name: Generate icons (Windows — magick pre-installed)
         if: matrix.name == 'windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path assets | Out-Null
           magick water-cup-svgrepo-com.svg -resize 512x512 assets/icon_512.png
           magick water-cup-svgrepo-com.svg -resize 256x256 assets/icon.png
+
+      # ── Platform-specific icon formats ─────────────────────────────────
 
       - name: Generate ICO (Windows)
         if: matrix.name == 'windows'
@@ -77,9 +97,12 @@ jobs:
               ("icon_512x512.png", 512),
           ]:
               src.resize((size, size), Image.LANCZOS).save(f"assets/icon.iconset/{name}")
-          subprocess.run(["iconutil", "-c", "icns", "assets/icon.iconset", "-o", "assets/icon.icns"], check=True)
+          subprocess.run(["iconutil", "-c", "icns", "assets/icon.iconset",
+                          "-o", "assets/icon.icns"], check=True)
           print("ICNS done")
           EOF
+
+      # ── PyInstaller build ──────────────────────────────────────────────
 
       - name: Build
         run: pyinstaller launcher.spec
@@ -87,6 +110,8 @@ jobs:
       - name: Zip macOS app
         if: matrix.name == 'macos'
         run: cd dist && zip -r QuizLauncher-macos.zip QuizLauncher.app
+
+      # ── Upload artifacts ───────────────────────────────────────────────
 
       - name: Upload Linux binary
         if: matrix.name == 'linux'
