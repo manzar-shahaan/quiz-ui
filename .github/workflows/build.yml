@@ -75,7 +75,18 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          body: |
+            ## Download
+
+            | Platform | File | Notes |
+            |----------|------|-------|
+            | Windows  | `QuizLauncher.exe` | Double-click to run |
+            | macOS    | `QuizLauncher-macos.zip` | Unzip → double-click the .app |
+            | Linux    | `QuizLauncher` | `chmod +x QuizLauncher` then run it |
+
+            > **macOS:** if Gatekeeper blocks it, right-click → Open → Open.
+
+            ---
           files: |
             artifacts/QuizLauncher-linux/QuizLauncher
             artifacts/QuizLauncher-windows/QuizLauncher.exe
