@@ -1,66 +1,72 @@
 # Quiz UI
 
-Lightweight Flask app that renders a generic LMS-style quiz practice UI from a Markdown file (typically `practice_test.md`). The server never mutates the source file; it only reads, parses, and renders it for local practice.
+A lightweight local quiz app that renders multiple-choice practice tests from a Markdown file. Answer questions in your browser, submit, and get a detailed results page with per-question feedback. A feedback file is written next to your quiz file so you can focus follow-up study on weak areas.
 
-## Intended workflow
+---
 
-1. Generate a `practice_test*.md` file (often with a coding AI agent) using the supported format.
-2. Run the Flask server against that file.
-3. Complete the quiz in your browser.
-4. On the summary page, the app writes a feedback Markdown file next to the `practice_test.md`.
-5. Use that feedback to guide the next generated practice test (focus on weak areas).
+## Download (no setup required)
 
-## Quick start
+Pre-built launchers are available on the [Releases](../../releases) page:
+
+| Platform | File |
+|----------|------|
+| Windows  | `QuizLauncher.exe` |
+| macOS    | `QuizLauncher-macos.zip` (unzip → double-click) |
+| Linux    | `QuizLauncher` (mark executable → run) |
+
+The launcher lets you pick a `.md` quiz file through a file picker, starts the server automatically, and opens it in your browser — no terminal needed.
+
+> **macOS note:** First launch may be blocked by Gatekeeper. Right-click the app → Open → Open to allow it.
+
+> **Linux note:** After downloading, make the file executable: `chmod +x QuizLauncher`
+
+---
+
+## For developers / CLI use
+
+### Quick start
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python3 run_quiz_server.py /path/to/practice_test.md
 ```
 
-Then open `http://127.0.0.1:8000`, click Start, answer questions, and Submit.
+Then open `http://127.0.0.1:8000` in your browser.
 
-## Install as a CLI
-
-Build and install locally so you can run it from any repo:
+### Install as a CLI tool
 
 ```bash
 pip install .
-```
-
-After installation, launch the server from anywhere with:
-
-```bash
 quiz-ui /path/to/practice_test.md
 ```
 
-Print the format guide without starting the server:
+Options:
 
-```bash
-quiz-ui --format
+```
+quiz-ui --format          # Print the quiz file format guide
+quiz-ui file.md --port 9000   # Use a different port
 ```
 
-## Quiz file format (authoritative)
+### Run the GUI launcher from source
 
-Only these question types are supported: `(MC)`, `(Multi)`, `(T/F)`, `(Match)`. Anything else will be ignored or fail to parse.
+```bash
+pip install -r requirements.txt
+python launcher.py
+```
 
-Rules:
+---
 
-- Title: first Markdown heading (first line starting with `#`)
-- Questions: numbered `1)`, `2)`, etc.
-- Question type tag (one of the supported types) in parentheses after the question number/text.
-- Options: `A)`, `B)`, `C)...` with the answer line immediately after the options block.
-- Answer line: starts with `Answer:` (case-insensitive).
-- Matching answers: `number-letter` pairs like `1-B,2-D`.
+## Quiz file format
 
-Example (generic):
+Four question types are supported: `(MC)`, `(Multi)`, `(T/F)`, `(Match)`.
 
 ```md
-# Example Practice Test
-- Topic: Sample questions
+# Example Practice Quiz
+- Topic: Sample
 
-1) (MC) Which HTTP method is typically used to retrieve data?
+1) (MC) Which HTTP method retrieves data?
    A) GET
    B) POST
    C) DELETE
@@ -69,14 +75,14 @@ Answer: A
 2) (T/F) The sky is green.
 Answer: F
 
-3) (Multi) Which of these are programming languages?
+3) (Multi) Which are programming languages?
    A) Python
    B) HTML
    C) Java
    D) CSS
 Answer: A,C
 
-4) (Match) Match the term to the description.
+4) (Match) Match the term to its description.
    1) Primary key
    2) Foreign key
    A) Uniquely identifies a row
@@ -84,14 +90,31 @@ Answer: A,C
 Answer: 1-A,2-B
 ```
 
+See [QUIZ_FORMAT.md](QUIZ_FORMAT.md) for the full spec including strict formatting rules.
+
+---
+
+## Features
+
+- **Question types:** single-choice, multi-select, true/false, matching
+- **Timer:** optional countdown with auto-submit on expiry
+- **Code blocks:** fenced ` ``` ` blocks render with syntax highlighting and a language label
+- **Results page:** per-question breakdown with correct/incorrect indicators
+- **Feedback file:** written next to the quiz file after submission — lists incorrect and partial questions for focused follow-up
+
+---
+
 ## Feedback output
 
-After you submit, the app writes a Markdown file into the same folder as the practice test.
+After submitting, a file is written into the same folder as the quiz:
 
-- Filename: `test {x} feedback {YYYY-MM-DD HH-MM-SS}.md` (where `{x}` is the first number in the practice test filename stem)
-- Content: overall score + a “Questions to review” section listing incorrect/partial questions
+- Filename: `test {x} feedback {YYYY-MM-DD HH-MM-SS}.md`
+- Content: overall score + a "Questions to review" section for incorrect/partial answers
+
+---
 
 ## Notes
 
-- State is in-memory for a single user; restarting clears answers.
-- This project is not affiliated with any LMS vendor; it’s a generic quiz UI for personal practice.
+- State is in-memory. Restarting the server clears all answers.
+- Multiple quizzes can run simultaneously on different ports via the GUI launcher.
+- This project is not affiliated with any LMS vendor.

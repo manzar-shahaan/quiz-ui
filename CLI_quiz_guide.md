@@ -122,6 +122,20 @@ If the quiz doesn’t parse, don’t hand-edit randomly first: re-check `AGENTS.
 
 Goal: start the local server, then take the quiz in your browser.
 
+### Option 1 — GUI launcher (recommended, no terminal needed)
+
+Download `QuizLauncher.exe` from the Releases page on GitHub.
+
+1) Double-click `QuizLauncher.exe`.
+2) Click **+ Add Quiz** and pick your `.md` file.
+3) The status dot turns green when the server is ready.
+4) Click **Open in browser** to start the quiz.
+5) Click **Stop** when you are done, or just close the launcher (it stops the server automatically).
+
+You can load multiple quizzes at once — each gets its own row and its own browser tab.
+
+### Option 2 — terminal command
+
 From the course folder, run:
 
 ```bat
@@ -134,14 +148,11 @@ If `python` is not recognized on your machine, use:
 py quiz_ui\run_quiz_server.py "practice_tests\practice_test.md"
 ```
 
-Now:
-
 1) Leave that terminal tab/window open.
    The quiz website only works while this command is running.
-2) Open your browser to:
-   http://127.0.0.1:8000
+2) Open your browser to `http://127.0.0.1:8000`.
 3) Take the quiz.
-4) When done, stop the server with Ctrl+C in the same terminal tab.
+4) When done, stop the server with Ctrl+C in the terminal.
 
 Notes:
 - Attempts are in-memory. Stopping/restarting the server clears answers.
@@ -168,7 +179,8 @@ Browser says it can’t reach the site
 
 Port 8000 already in use
 - Cause: an old server is still running, or another app uses that port.
-- Fix: close the other server terminal tab, or stop it with Ctrl+C. Then re-run.
+- Fix (terminal): close the other server terminal tab, or stop it with Ctrl+C. Then re-run.
+- Fix (launcher): the GUI launcher automatically picks a free port, so this only affects the terminal method.
 
 Paths with spaces
 - Fix: always wrap paths in quotes: `"C:\Some Folder\practice_tests\practice_test.md"`.

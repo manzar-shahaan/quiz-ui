@@ -59,6 +59,11 @@ def main():
         "--port", type=int, default=8000,
         help="Port to bind (default 8000)",
     )
+    parser.add_argument(
+        "--launcher",
+        action="store_true",
+        help=argparse.SUPPRESS,  # internal flag set by the GUI launcher
+    )
     args = parser.parse_args()
 
     if args.format:
@@ -73,8 +78,8 @@ def main():
 
     app = create_app(quiz_path=args.quiz_file)
 
-    # Debug True for dev; change if you want
-    app.run(host=args.host, port=args.port, debug=True)
+    # Launcher mode disables the reloader so the GUI can track the process cleanly
+    app.run(host=args.host, port=args.port, debug=not args.launcher, use_reloader=not args.launcher)
 
 
 if __name__ == "__main__":

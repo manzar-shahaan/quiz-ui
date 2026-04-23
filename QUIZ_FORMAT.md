@@ -99,5 +99,5 @@ Answer: 1-A,2-B
 
 ## Usage pattern
 - Author a quiz file following this format.
-- Run `quiz-ui /path/to/practice_test.md`.
+- Open it via the GUI launcher (click **+ Add Quiz**) or run `quiz-ui /path/to/practice_test.md` from the terminal.
 - If parser errors occur, re-check against the patterns above.

@@ -1,0 +1,82 @@
+name: Build executables
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            name: linux
+          - os: windows-latest
+            name: windows
+          - os: macos-latest
+            name: macos
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system tkinter (Linux)
+        if: matrix.name == 'linux'
+        run: sudo apt-get install -y python3-tk
+
+      - name: Install dependencies
+        run: pip install flask customtkinter pyinstaller
+
+      - name: Build
+        run: pyinstaller launcher.spec
+
+      - name: Zip macOS app
+        if: matrix.name == 'macos'
+        run: cd dist && zip -r QuizLauncher-macos.zip QuizLauncher.app
+
+      - name: Upload Linux binary
+        if: matrix.name == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuizLauncher-linux
+          path: dist/QuizLauncher
+
+      - name: Upload Windows exe
+        if: matrix.name == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuizLauncher-windows
+          path: dist/QuizLauncher.exe
+
+      - name: Upload macOS app
+        if: matrix.name == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuizLauncher-macos
+          path: dist/QuizLauncher-macos.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/QuizLauncher-linux/QuizLauncher
+            artifacts/QuizLauncher-windows/QuizLauncher.exe
+            artifacts/QuizLauncher-macos/QuizLauncher-macos.zip

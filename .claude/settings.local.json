@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pip show *)",
+      "Bash(/media/psf/Shared/Projects/quiz-ui/.venv/bin/python -m pip install customtkinter)",
+      "Bash(/media/psf/Shared/Projects/quiz-ui/.venv/bin/python -m pip install -e /media/psf/Shared/Projects/quiz-ui/)"
+    ]
+  }
+}
