@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/icon.png" width="96" alt="Quiz UI logo">
+</p>
+
 # Quiz UI
 
 A lightweight local quiz app that renders multiple-choice practice tests from a Markdown file. Answer questions in your browser, submit, and get a detailed results page with per-question feedback. A feedback file is written next to your quiz file so you can focus follow-up study on weak areas.

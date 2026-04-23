@@ -3,9 +3,17 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 
+if sys.platform == "darwin":
+    icon_file = "assets/icon.icns"
+elif sys.platform == "win32":
+    icon_file = "assets/icon.ico"
+else:
+    icon_file = "assets/icon.png"
+
 datas = [
     ("app/templates",  "app/templates"),
     ("app/static",     "app/static"),
+    ("assets",         "assets"),
     ("QUIZ_FORMAT.md", "."),
 ]
 datas += collect_data_files("customtkinter")
@@ -44,6 +52,7 @@ if sys.platform == "darwin":
         upx=False,
         console=False,
         argv_emulation=True,
+        icon=icon_file,
     )
     coll = COLLECT(
         exe, a.binaries, a.datas,
@@ -54,7 +63,7 @@ if sys.platform == "darwin":
     app = BUNDLE(
         coll,
         name="QuizLauncher.app",
-        icon=None,
+        icon=icon_file,
         bundle_identifier="com.quizui.launcher",
         info_plist={"NSHighResolutionCapable": True},
     )
@@ -70,4 +79,5 @@ else:
         strip=False,
         upx=True,
         console=False,
+        icon=icon_file,
     )

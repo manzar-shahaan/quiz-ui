@@ -6,7 +6,6 @@ Pick a .md file and launch it in the browser without touching the terminal.
 import socket
 import subprocess
 import sys
-import webbrowser
 from pathlib import Path
 from tkinter import filedialog
 
@@ -17,6 +16,7 @@ ctk.set_default_color_theme("blue")
 
 HERE = Path(__file__).resolve().parent
 SERVER = HERE / "run_quiz_server.py"
+ICON = HERE / "assets" / "icon.png"
 POLL_MS = 1000
 
 
@@ -132,7 +132,13 @@ class QuizRow(ctk.CTkFrame):
     # ── button actions ────────────────────────────────────────────────────
 
     def _open(self):
-        webbrowser.open(f"http://127.0.0.1:{self._port}")
+        url = f"http://127.0.0.1:{self._port}"
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", url])
+        elif sys.platform == "win32":
+            subprocess.Popen(["start", "", url], shell=True)
+        else:
+            subprocess.Popen(["xdg-open", url])
 
     def _action(self):
         if self._proc and self._proc.poll() is None:
@@ -159,7 +165,19 @@ class LauncherApp(ctk.CTk):
         self._next_port = 8000
         self._empty_lbl: ctk.CTkLabel | None = None
         self._build()
+        self._set_icon()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _set_icon(self):
+        if not ICON.exists():
+            return
+        try:
+            from PIL import Image, ImageTk  # type: ignore
+            img = ImageTk.PhotoImage(Image.open(ICON).resize((32, 32)))
+            self.iconphoto(True, img)
+            self._icon_ref = img  # prevent GC
+        except Exception:
+            pass
 
     # ── layout ───────────────────────────────────────────────────────────
 
