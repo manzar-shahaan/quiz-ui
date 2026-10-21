@@ -107,9 +107,13 @@ jobs:
       - name: Build
         run: pyinstaller launcher.spec
 
-      - name: Zip macOS app
+      - name: Create macOS DMG
         if: matrix.name == 'macos'
-        run: cd dist && zip -r QuizLauncher-macos.zip QuizLauncher.app
+        run: |
+          mkdir -p dmg-root
+          cp -R dist/QuizLauncher.app dmg-root/
+          ln -s /Applications dmg-root/Applications
+          hdiutil create -volname "QuizLauncher" -srcfolder dmg-root -ov -format UDZO dist/QuizLauncher-macos.dmg
 
       # ── Upload artifacts ───────────────────────────────────────────────
 
@@ -132,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: QuizLauncher-macos
-          path: dist/QuizLauncher-macos.zip
+          path: dist/QuizLauncher-macos.dmg
 
   release:
     needs: build
@@ -152,7 +156,7 @@ jobs:
             | Platform | File | Notes |
             |----------|------|-------|
             | Windows  | `QuizLauncher.exe` | Double-click to run |
-            | macOS    | `QuizLauncher-macos.zip` | Unzip → double-click the .app |
+            | macOS    | `QuizLauncher-macos.dmg` | Open the .dmg and drag QuizLauncher into Applications |
             | Linux    | `QuizLauncher` | `chmod +x QuizLauncher` then run it |
 
             > **macOS:** if Gatekeeper blocks it, right-click → Open → Open.
@@ -161,4 +165,4 @@ jobs:
           files: |
             artifacts/QuizLauncher-linux/QuizLauncher
             artifacts/QuizLauncher-windows/QuizLauncher.exe
-            artifacts/QuizLauncher-macos/QuizLauncher-macos.zip
+            artifacts/QuizLauncher-macos/QuizLauncher-macos.dmg
