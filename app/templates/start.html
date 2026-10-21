@@ -1,8 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bs-card bs-start-card">
+<div
+  class="bs-card bs-start-card"
+  data-quiz-id="{{ quiz_id }}"
+  data-state-url="{{ url_for('main.api_attempt_state') }}"
+  data-quiz-url="{{ url_for('main.quiz_page') }}"
+>
   <h1 class="bs-start-title">{{ quiz.title }}</h1>
   <p class="bs-start-subtitle">{{ quiz_filename or "Practice quiz" }}</p>
+
+  <div class="bs-resume-banner" id="resumeBanner" hidden>
+    <p class="bs-resume-text">
+      An attempt was started <strong id="resumeAgo"></strong> ago.
+    </p>
+    <button type="button" class="bs-button bs-button-primary" id="resumeBtn">Resume attempt</button>
+  </div>
 
   <form method="post" action="{{ url_for('main.start_quiz') }}">
     <div class="bs-start-shell">
@@ -10,18 +22,23 @@
         {% if quiz.meta_lines %}
         <ul class="bs-start-meta">
           {% for line in quiz.meta_lines %}
-            <li>{{ line }}</li>
+          <li>{{ line }}</li>
           {% endfor %}
         </ul>
         {% endif %}
 
         {% if error %}
-          <p class="bs-error">{{ error }}</p>
+        <p class="bs-error">{{ error }}</p>
         {% endif %}
+
+        <p class="bs-start-warning" id="startWarning" hidden>
+          Starting a new quiz will discard the saved answers from the earlier attempt.
+        </p>
 
         <button type="submit" class="bs-button bs-button-primary">
           Start Quiz
         </button>
+        <span class="bs-start-warning-aside" id="startWarningHint" hidden>(saved answers will be lost)</span>
       </div>
 
       <aside class="bs-start-config" aria-label="Configuration">

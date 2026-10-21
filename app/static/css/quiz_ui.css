@@ -14,6 +14,19 @@ body {
   padding: 1.5rem;
 }
 
+/* Quiz page: full-viewport app shell with two independently scrolling columns */
+body.bs-page-quiz {
+  overflow: hidden;
+  height: 100vh;
+}
+
+body.bs-page-quiz .bs-main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -24,6 +37,11 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* The hidden attribute must win over any explicit display value */
+[hidden] {
+  display: none !important;
 }
 
 .bs-card {
@@ -123,14 +141,22 @@ body {
 }
 
 .bs-quiz-shell {
-  max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 960px;
   margin: 0 auto;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
 }
 
 .bs-quiz-topline {
   height: 4px;
   background: #1f7047;
-  margin: -1.5rem -1.5rem 0;
+  margin: 0 -1.5rem;
+  flex: 0 0 auto;
 }
 
 .bs-quiz-page-header {
@@ -139,6 +165,7 @@ body {
   align-items: center;
   gap: 1rem;
   padding: 0.9rem 0 1rem;
+  flex: 0 0 auto;
 }
 
 .bs-quiz-page-title {
@@ -164,6 +191,96 @@ body {
   box-sizing: border-box;
 }
 
+/* Timer + hover-revealed pause control */
+.bs-timer-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bs-timer-hover-toggle {
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1;
+  padding: 0.18rem 0.38rem;
+  color: #3d4753;
+  transition: opacity 0.12s ease;
+}
+
+.bs-timer-wrap:hover .bs-timer-hover-toggle,
+.bs-timer-wrap:focus-within .bs-timer-hover-toggle,
+.bs-timer-wrap.is-revealed .bs-timer-hover-toggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Settings dropdown (in-quiz configuration) */
+.bs-settings-wrap {
+  position: relative;
+}
+
+.bs-settings-btn {
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  border-radius: 4px;
+  padding: 0.32rem 0.7rem;
+  font: inherit;
+  font-weight: 600;
+  color: #324051;
+  cursor: pointer;
+}
+
+.bs-settings-btn:hover {
+  border-color: #8da9e5;
+}
+
+.bs-settings-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 270px;
+  background: #fff;
+  border: 1px solid #d7dde5;
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.14);
+  padding: 0.9rem 1rem;
+  z-index: 50;
+}
+
+.bs-settings-sep {
+  border-top: 1px solid #e4e8ee;
+  margin: 0.75rem 0;
+}
+
+.bs-settings-label {
+  font-weight: 700;
+  color: #2f3742;
+}
+
+.bs-settings-mode {
+  color: #66707d;
+  font-size: 0.88rem;
+  margin-top: 0.15rem;
+}
+
+.bs-settings-timer-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.bs-settings-timer-actions .bs-button {
+  min-width: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+}
+
 .bs-timer {
   font-weight: 700;
   color: #2e3a49;
@@ -183,20 +300,23 @@ body {
 
 .bs-quiz-divider {
   border-top: 1px solid #d7dde5;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
+  flex: 0 0 auto;
 }
 
 .bs-quiz-content {
   display: grid;
-  grid-template-columns: 122px minmax(0, 1fr);
+  grid-template-columns: 132px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 2rem;
-  align-items: start;
+  flex: 1;
+  min-height: 0;
 }
 
 .bs-nav-panel {
-  position: sticky;
-  top: 1rem;
-  align-self: start;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 0.25rem;
 }
 
 .bs-nav-header {
@@ -214,21 +334,11 @@ body {
   margin-top: 0.15rem;
 }
 
-.bs-nav-page {
-  margin-top: 0.55rem;
-}
-
-.bs-nav-page-title {
-  font-weight: 700;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-  color: #3a434e;
-}
-
 .bs-nav-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0.4rem;
+  margin-top: 0.55rem;
 }
 
 .bs-nav-tile {
@@ -306,9 +416,10 @@ body {
 
 .bs-question-panel {
   min-width: 0;
-  max-height: calc(100vh - 170px);
+  height: 100%;
   overflow-y: auto;
   padding-right: 1rem;
+  scroll-behavior: smooth;
 }
 
 .bs-question-card {
@@ -318,6 +429,7 @@ body {
   box-shadow: none;
   padding: 0;
   margin-bottom: 1.8rem;
+  scroll-margin-top: 0.75rem;
 }
 
 .bs-question-header {
@@ -417,10 +529,9 @@ body {
   align-items: center;
   margin-top: 1rem;
   gap: 1rem;
-}
-
-.bs-page-indicator {
-  color: #66707d;
+  border-top: 1px solid #e4e8ee;
+  padding-top: 1.1rem;
+  margin-bottom: 1rem;
 }
 
 .bs-question-nav {
@@ -494,6 +605,74 @@ body {
   margin-top: 0.8rem;
   color: #67717d;
   font-size: 0.95rem;
+}
+
+.bs-start-warning {
+  color: #8a5a00;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.bs-start-warning-aside {
+  color: #8a5a00;
+  font-size: 0.88rem;
+  margin-left: 0.5rem;
+}
+
+.bs-resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border: 1px solid #b9d7f0;
+  background: #eaf3fc;
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+  margin: 0 0 1.25rem;
+}
+
+.bs-resume-text {
+  margin: 0;
+  color: #23425e;
+}
+
+/* Exit confirmation modal */
+.bs-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 32, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.bs-modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.4rem 1.5rem;
+  max-width: 430px;
+  width: calc(100% - 2rem);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+.bs-modal-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.bs-modal-copy {
+  margin: 0 0 1.1rem;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+.bs-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
 }
 
 .bs-options {
@@ -633,6 +812,22 @@ body {
     padding: 1rem;
   }
 
+  /* Quiz page falls back to normal document scrolling */
+  body.bs-page-quiz {
+    overflow: auto;
+    height: auto;
+  }
+
+  body.bs-page-quiz .bs-main {
+    height: auto;
+    display: block;
+    padding: 1rem;
+  }
+
+  .bs-quiz-shell {
+    padding: 0;
+  }
+
   .bs-quiz-topline {
     margin: -1rem -1rem 0;
   }
@@ -655,7 +850,25 @@ body {
     max-height: none;
     width: 100%;
     overflow: visible;
+    height: auto;
     padding-right: 0;
+  }
+
+  .bs-nav-panel {
+    overflow-y: auto;
+    max-height: 40vh;
+  }
+
+  .bs-settings-menu {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    top: auto;
+  }
+
+  .bs-quiz-page-tools {
+    flex-wrap: wrap;
   }
 
   .bs-nav-grid {
@@ -665,6 +878,8 @@ body {
 
   .bs-question-footer {
     align-items: flex-start;
+    flex-direction: column;
+    display: flex;
   }
 
   .bs-question-nav {
@@ -674,6 +889,10 @@ body {
   .bs-start-config {
     width: 100%;
     margin-top: 1rem;
+  }
+  .bs-resume-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

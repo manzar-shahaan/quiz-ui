@@ -1,20 +1,71 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bs-quiz-shell" data-show-answers="{{ 1 if show_answers_in_sidebar else 0 }}" data-grade-url="{{ url_for('main.grade_api') }}">
+<div
+  class="bs-quiz-shell"
+  data-quiz-id="{{ quiz_id }}"
+  data-attempt-id="{{ attempt_id }}"
+  data-has-attempt="{{ 1 if has_attempt else 0 }}"
+  data-server-saved-at="{{ server_saved_at }}"
+  data-started-at="{{ started_at }}"
+  data-limit-seconds="{{ timer_limit_seconds if timer_mode == 'countdown' else '' }}"
+  data-elapsed-seconds="{{ timer_elapsed_seconds }}"
+  data-paused="{{ 1 if timer_paused else 0 }}"
+  data-show-answers="{{ 1 if show_answers_in_sidebar else 0 }}"
+  data-grade-url="{{ url_for('main.grade_api') }}"
+  data-answer-url="{{ url_for('main.api_attempt_answer') }}"
+  data-state-url="{{ url_for('main.api_attempt_state') }}"
+  data-timer-url="{{ url_for('main.api_attempt_timer') }}"
+  data-settings-url="{{ url_for('main.api_attempt_settings') }}"
+  data-quiz-url="{{ url_for('main.quiz_page') }}"
+  data-start-url="{{ url_for('main.start_page') }}"
+>
   <div class="bs-quiz-topline"></div>
 
   <header class="bs-quiz-page-header">
     <h1 class="bs-quiz-page-title">{{ quiz.title }}</h1>
     <div class="bs-quiz-page-tools">
-      <span class="bs-quiz-spinner" aria-hidden="true"></span>
-      {% if time_limit_seconds %}
-        <span class="bs-timer" data-live="1" data-mode="countdown" data-seconds="{{ remaining_seconds|int }}" data-timeout-submit="1">—</span>
-        <span class="bs-quiz-timer-copy">remaining</span>
-      {% else %}
-        <span class="bs-timer" data-live="1" data-mode="elapsed" data-seconds="{{ elapsed_seconds|int }}">—</span>
-        <span class="bs-quiz-timer-copy">elapsed</span>
+      {% if has_attempt %}
+      <div class="bs-settings-wrap">
+        <button type="button" class="bs-settings-btn" aria-haspopup="true" aria-expanded="false">
+          ⚙ Settings
+        </button>
+        <div class="bs-settings-menu" hidden>
+          <label class="bs-settings-item bs-pref-option">
+            <input type="checkbox" id="settingsShowAnswers" {% if show_answers_in_sidebar %}checked{% endif %}>
+            <span>Show answers in sidebar</span>
+          </label>
+
+          <div class="bs-settings-sep"></div>
+
+          <div class="bs-settings-item bs-settings-timer">
+            <div class="bs-settings-label">Timer</div>
+            {% if timer_mode == 'countdown' %}
+              <div class="bs-settings-mode">Countdown · {{ (timer_limit_seconds // 60) if timer_limit_seconds is not none else '?' }} min limit</div>
+            {% else %}
+              <div class="bs-settings-mode">Stopwatch · no time limit</div>
+            {% endif %}
+            <div class="bs-settings-timer-actions">
+              <button type="button" class="bs-button bs-timer-toggle-btn" data-timer-action="{{ 'resume' if timer_paused else 'pause' }}">
+                {{ 'Resume' if timer_paused else 'Pause' }}
+              </button>
+              {% if timer_mode == 'countdown' %}
+              <button type="button" class="bs-button" data-timer-action="add" data-minutes="5">+5 min</button>
+              <button type="button" class="bs-button" data-timer-action="add" data-minutes="15">+15 min</button>
+              {% endif %}
+            </div>
+            <span class="bs-config-help">Timer mode is locked once the quiz starts.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bs-timer-wrap" id="timerWrap">
+        <span class="bs-timer">—</span>
+        <span class="bs-quiz-timer-copy">{{ 'remaining' if timer_mode == 'countdown' else 'elapsed' }}</span>
+        <button type="button" class="bs-timer-hover-toggle" aria-label="Pause timer">⏸</button>
+      </div>
       {% endif %}
-      <a class="bs-quiz-close" href="{{ url_for('main.start_page') }}" aria-label="Exit quiz">×</a>
+
+      <a class="bs-quiz-close" href="{{ url_for('main.start_page') }}" data-exit="1" aria-label="Exit quiz">×</a>
     </div>
   </header>
 
@@ -22,41 +73,35 @@
 
   <div class="bs-quiz-content">
     <aside class="bs-nav-panel" aria-label="Quiz navigation">
-      {% for page in nav_pages %}
-        <div class="bs-nav-page">
-          <div class="bs-nav-page-title">Page {{ page.page_num }}:</div>
-          <div class="bs-nav-grid">
-            {% for nav in page.entries %}
-              <a
-                class="bs-nav-tile {% if nav.current %}is-current{% endif %} {% if nav.answered %}is-answered{% endif %} {% if show_answers_in_sidebar and nav.status %}is-{{ nav.status }}{% endif %}"
-                href="{{ url_for('main.quiz_page') }}?index={{ nav.index }}"
-                data-question-index="{{ nav.index }}"
-              >
-                <span class="bs-nav-number">{{ nav.display }}</span>
-                <span class="bs-nav-mark" aria-hidden="true">{% if nav.answered %}✓{% else %}--{% endif %}</span>
-                <span class="sr-only">
-                  Question {{ nav.display }}
-                  {% if nav.answered %} answered{% else %} not answered{% endif %}
-                  {% if nav.current %} (current){% endif %}
-                </span>
-              </a>
-            {% endfor %}
-          </div>
+      <div class="bs-nav-inner">
+        <div class="bs-nav-header">
+          <div class="bs-nav-title">Questions</div>
+          <div class="bs-nav-progress" id="navProgress">{{ answered_count }} of {{ total }} saved</div>
         </div>
-      {% endfor %}
+        <div class="bs-nav-grid">
+          {% for nav in nav_items %}
+          <a
+            class="bs-nav-tile {% if nav.answered %}is-answered{% endif %} {% if show_answers_in_sidebar and nav.status %}is-{{ nav.status }}{% endif %}"
+            href="#q-{{ nav.index }}"
+            data-question-index="{{ nav.index }}"
+          >
+            <span class="bs-nav-number">{{ nav.display }}</span>
+            <span class="bs-nav-mark" aria-hidden="true">{% if nav.answered %}✓{% else %}--{% endif %}</span>
+            <span class="sr-only">Question {{ nav.display }}{% if nav.answered %} answered{% else %} not answered{% endif %}</span>
+          </a>
+          {% endfor %}
+        </div>
 
-      <a class="bs-nav-info" href="{{ url_for('main.start_page') }}">Quiz Information</a>
+        <a class="bs-nav-info" href="{{ url_for('main.start_page') }}" data-exit="1">Quiz Information</a>
+      </div>
     </aside>
 
     <section class="bs-question-panel">
-      <form method="post" action="{{ url_for('main.quiz_page', index=index) }}" class="bs-quiz-form">
-        {% for q in page_questions %}
+      <form method="post" action="{{ url_for('main.quiz_page') }}" class="bs-quiz-form">
+        {% for q in questions %}
         <article class="bs-question-card" id="q-{{ q.index }}">
           <div class="bs-question-header">
             <div class="bs-question-label">Question {{ q.file_qnum }}</div>
-            <div class="bs-question-status">
-              {% if existing_answers[q.index]|default("") %}Saved{% else %}Not saved{% endif %}
-            </div>
           </div>
 
           <div class="bs-question-body">
@@ -161,26 +206,32 @@
         </article>
         {% endfor %}
 
-        <div class="bs-question-footer">
-          <div class="bs-page-indicator">Page {{ page_index }} of {{ total_pages }}</div>
-          <div class="bs-question-nav">
-            <button type="submit" name="prev_page" class="bs-button" {% if page_start == 0 %}disabled{% endif %}>
-              Previous Page
-            </button>
-            <button type="submit" name="next_page" class="bs-button" {% if page_end >= total %}disabled{% endif %}>
-              Next Page
-            </button>
-            <button type="submit" name="submit" class="bs-button bs-button-primary">
-              Submit Quiz
-            </button>
-          </div>
-        </div>
+        <input type="hidden" name="timer_elapsed_seconds" value="{{ timer_elapsed_seconds }}">
+        <input type="hidden" name="timer_paused" value="{{ '1' if timer_paused else '0' }}">
 
-        <div class="bs-submit-status">
-          {{ answered_count }} of {{ total }} saved
+        <div class="bs-question-footer">
+          <div class="bs-submit-status" id="submitStatus">{{ answered_count }} of {{ total }} saved</div>
+          <button type="submit" name="submit" value="1" class="bs-button bs-button-primary">
+            Submit Quiz
+          </button>
         </div>
       </form>
     </section>
   </div>
+
+  {% if has_attempt %}
+  <div class="bs-modal-backdrop" id="exitModal" hidden>
+    <div class="bs-modal" role="dialog" aria-modal="true" aria-labelledby="exitModalTitle">
+      <h2 class="bs-modal-title" id="exitModalTitle">Leave this quiz?</h2>
+      <p class="bs-modal-copy">
+        Your answers are saved automatically. This attempt stays on the start page and can be resumed later.
+      </p>
+      <div class="bs-modal-actions">
+        <button type="button" class="bs-button" id="exitCancel">Keep working</button>
+        <button type="button" class="bs-button bs-button-primary" id="exitConfirm">Leave quiz</button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

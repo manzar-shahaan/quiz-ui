@@ -36,15 +36,54 @@ def _print_format():
     )
 
 
+def _run_check(quiz_file: Path) -> int:
+    """Validate a quiz markdown file and print OK or the issues found.
+
+    Returns the process exit code (0 = valid, 1 = issues).
+    """
+    from app.checker import check_quiz_file
+
+    if not quiz_file.exists():
+        print(f"ERROR: quiz file not found: {quiz_file}", file=sys.stderr)
+        return 1
+
+    try:
+        issues, count = check_quiz_file(quiz_file)
+    except (OSError, UnicodeDecodeError) as exc:
+        print(f"ERROR: could not read {quiz_file}: {exc}", file=sys.stderr)
+        return 1
+
+    if issues:
+        plural = "" if len(issues) == 1 else "s"
+        print(
+            f"ERROR: {quiz_file} failed format check ({len(issues)} issue{plural}):",
+            file=sys.stderr,
+        )
+        for issue in issues:
+            print(f"  - {issue}", file=sys.stderr)
+        return 1
+
+    print(f"OK: {quiz_file} passed format check ({count} questions)")
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Run quiz practice server for a given practice_test.md"
+        description=(
+            "Run a practice-quiz server for a practice_test.md file, or validate "
+            "a quiz file's format with --check"
+        )
     )
     parser.add_argument(
         "quiz_file",
         nargs="?",
         type=Path,
         help="Path to the practice_test.md file",
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate the quiz file's format (title, question numbers, type tags, options, answers) and exit: prints OK or the issues found",
     )
     parser.add_argument(
         "--format",
@@ -66,12 +105,17 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.check:
+        if not args.quiz_file:
+            parser.error("quiz_file is required with --check")
+        raise SystemExit(_run_check(args.quiz_file))
+
     if args.format:
         _print_format()
         return
 
     if not args.quiz_file:
-        parser.error("quiz_file is required unless you pass --format")
+        parser.error("quiz_file is required unless you pass --format or --check")
 
     if not args.quiz_file.exists():
         raise SystemExit(f"Quiz file not found: {args.quiz_file}")

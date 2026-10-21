@@ -99,5 +99,6 @@ Answer: 1-A,2-B
 
 ## Usage pattern
 - Author a quiz file following this format.
+- Validate it: run `quiz-ui --check /path/to/practice_test.md` (or `python run_quiz_server.py --check ...`). It prints `OK: ... passed format check (N questions)` or a list of issues with question/line references. Agents should run this as a validation step right after creating the file.
 - Open it via the GUI launcher (click **+ Add Quiz**) or run `quiz-ui /path/to/practice_test.md` from the terminal.
 - If parser errors occur, re-check against the patterns above.

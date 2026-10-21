@@ -1,3 +1,4 @@
+import hashlib
 import html as _html_lib
 import re as _re_lib
 from pathlib import Path
@@ -44,6 +45,14 @@ def create_app(quiz_path: Path) -> Flask:
 
     quiz = quiz_parser.parse_quiz(quiz_path)
     app.config["QUIZ"] = quiz
+
+    # Stable id for this quiz content; saved attempts in the browser are keyed
+    # by it so edits to the source file don't resurrect stale attempts.
+    try:
+        quiz_id = hashlib.sha1(quiz_path.read_bytes()).hexdigest()[:16]
+    except OSError:
+        quiz_id = quiz_path.name
+    app.config["QUIZ_ID"] = quiz_id
 
     app.jinja_env.filters['render_prompt'] = _render_prompt
 

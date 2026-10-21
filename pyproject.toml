@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "quiz-ui"
 version = "0.1.0"
-description = "Lightweight Flask quiz UI that renders practice_test.md and serves it locally"
+description = "Lightweight Flask quiz UI that renders practice_test.md, validates quiz files (--check), and serves them locally"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

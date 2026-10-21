@@ -1,15 +1,11 @@
+# Python
 .venv/
-__pycache__/
+**/__pycache__/
 *.py[cod]
-.DS_Store
-*.log
+*.pyo
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Editor
-.vscode/
-.idea/
 
 # Packaging / build artifacts
 build/
@@ -17,12 +13,20 @@ dist/
 *.egg-info/
 pip-wheel-metadata/
 
-# Local artifacts
-*.png
-.pipx/
+# Generated assets (built from SVG in CI)
+assets/
 
-#Checklist file
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Project-specific generated files
 next things to implement.md
-
-#helper
 AGENTS.md
